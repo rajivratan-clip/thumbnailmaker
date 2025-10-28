@@ -55,7 +55,6 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```powershell
 curl.exe -X POST "http://127.0.0.1:8000/upload-generate" `
   -F 'file=@"D:\\thumbnail maker\\example.mp4"' `
-  -F "title=Local Test" `
   -F "key_prefix=thumbs/"
 ```
 Response:
