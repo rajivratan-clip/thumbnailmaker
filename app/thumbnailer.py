@@ -84,13 +84,10 @@ def _draw_title(image_path: Path, title: str, font_path: str = None, font_size: 
         font = ImageFont.load_default()
     draw = ImageDraw.Draw(im, "RGBA")
 
-    # bottom semi-transparent bar
-    bar_h = int(h * 0.26)
-    bar_y = h - bar_h
-    draw.rectangle([(0, bar_y), (w, h)], fill=(0,0,0,200))
-
     # simple wrapping
-    max_width = int(w * 0.92)
+    padding_h = int(w * 0.04)
+    padding_v = int(h * 0.02)
+    max_width = int(w - 2 * padding_h)
     words = title.split()
     lines = []
     cur = ""
@@ -107,13 +104,26 @@ def _draw_title(image_path: Path, title: str, font_path: str = None, font_size: 
     if cur:
         lines.append(cur)
 
-    padding = int(w * 0.04)
-    y = bar_y + padding
+    # compute text block height for a tight bottom band
+    line_spacing = int(font_size * 0.15)
+    text_heights = []
+    text_widths = []
     for line in lines:
+        bbox = draw.textbbox((0, 0), line, font=font)
+        text_widths.append(bbox[2] - bbox[0])
+        text_heights.append(bbox[3] - bbox[1])
+    block_text_height = sum(text_heights) + line_spacing * max(0, len(lines) - 1)
+    rect_top = max(0, h - padding_v - block_text_height - padding_v)
+
+    # draw a minimal-height semi-transparent bar just behind text
+    draw.rectangle([(0, rect_top), (w, h)], fill=(0,0,0,180))
+
+    # render lines centered
+    y = rect_top + padding_v
+    for idx, line in enumerate(lines):
         bbox = draw.textbbox((0, 0), line, font=font)
         tw, th = (bbox[2] - bbox[0], bbox[3] - bbox[1])
         x = (w - tw) // 2
-        # stroke
         stroke = max(1, font_size // 14)
         for dx in range(-stroke, stroke+1):
             for dy in range(-stroke, stroke+1):
@@ -121,7 +131,7 @@ def _draw_title(image_path: Path, title: str, font_path: str = None, font_size: 
                     continue
                 draw.text((x+dx, y+dy), line, font=font, fill=(0,0,0,255))
         draw.text((x, y), line, font=font, fill=(255,255,255,255))
-        y += th + int(font_size * 0.15)
+        y += th + line_spacing
 
     im = im.convert("RGB")
     im.save(image_path, quality=90)
