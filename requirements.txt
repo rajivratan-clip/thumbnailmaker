@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+pillow
+boto3
+python-multipart
+transformers
+opencv-python
+# NOTE: install torch/torchvision separately with the correct wheel for your platform (see README)
+requests
